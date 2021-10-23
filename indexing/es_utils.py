@@ -4,8 +4,8 @@ from elasticsearch import Elasticsearch
 import pytz
 import math
 from indexing.decorators import timeit
-#es = Elasticsearch(['http://localhost:9200/', ], http_auth=('elastic','Nasdaq22@#'), scheme="http", timeout=30, max_retries=10, retry_on_timeout=True)
-es = Elasticsearch(['http://192.168.43.254:9200/', ], http_auth=('elastic','Nasdaq22@#'), scheme="http", timeout=30, max_retries=10, retry_on_timeout=True)
+
+es = Elasticsearch([os.environ.get('es_second_host'), ], http_auth=('elastic',os.environ.get('elastic_second_host_pass')), scheme="http", timeout=30, max_retries=10, retry_on_timeout=True)
 
 
 def update_time_frame(timeframe):
