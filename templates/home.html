@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+</head>
+    <body>
+        {% block nav %}
+        <ul id="nav">
+            <li>{% block nav-1m%}<a href="{% url 'table_1m' %}">1 min</a>{% endblock %}</li>
+            <li>{% block nav-5m%}<a href="{% url 'table_5m' %}">5 min</a>{% endblock %}</li>
+            <li>{% block nav-1h %}<a href="{% url 'table_1h' %}">1 hour</a>{% endblock %}</li>
+            <li>{% block nav-market_details%}<a href="{% url 'refresh_market_dtls' %}">Refresh mMrket Cap Details(Coin Gecko)</a>{% endblock %}</li>
+        </ul>
+        {% endblock %}
+    </body>
+</html>

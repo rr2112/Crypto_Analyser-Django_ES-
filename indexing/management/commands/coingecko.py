@@ -1,11 +1,11 @@
 from concurrent.futures import ThreadPoolExecutor
-import time
 
 from pycoingecko import CoinGeckoAPI
 
 from indexing.decorators import timeit
 
 result = {}
+
 
 def get_market_caps_per_page(page_required):
     global result
@@ -26,6 +26,7 @@ def get_market_caps_per_page(page_required):
     } for i in
         markets})
 
+
 @timeit
 def get_market_details():
     global result
@@ -37,4 +38,4 @@ def get_market_details():
 
 
 if __name__ == '__main__':
-    get_market_details()
+    print(get_market_details())

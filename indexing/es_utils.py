@@ -1,11 +1,8 @@
-from datetime import datetime
-import os
-from elasticsearch import Elasticsearch
-import pytz
 import math
-from indexing.decorators import timeit
+import os
+from datetime import datetime
 
-es = Elasticsearch([os.environ.get('es_second_host'), ], http_auth=('elastic',os.environ.get('elastic_second_host_pass')), scheme="http", timeout=30, max_retries=10, retry_on_timeout=True)
+from elasticsearch import Elasticsearch
 
 
 def update_time_frame(timeframe):
@@ -26,10 +23,14 @@ def index_df(required_coins, timeframe):
 
 
 def process_df_rows(df_row, timeframe):
+    es = Elasticsearch([os.environ.get('es_second_host'), ],
+                       http_auth=('elastic', os.environ.get('elastic_second_host_pass')), scheme="http", timeout=30,
+                       max_retries=10, retry_on_timeout=True)
+
     try:
         df_row = df_row.fillna(0)
         index_unique_id = df_row['coin'] + \
-            relative_time(df_row['open_timestamp'], timeframe)
+                          relative_time(df_row['open_timestamp'], timeframe)
         data_body = {i: j for i, j in df_row.items()}
         data_body['open_timestamp_str'] = data_body['open_timestamp']
         # timezone = pytz.timezone('Asia/Kolkata')
@@ -52,5 +53,3 @@ def relative_time(open_timestamp, timeframe):
     time_stamp_for_index = {'m': 16, 'e': 16,
                             'h': 16, 'd': 10, 'w': 10, 'M': 7}
     return open_timestamp[:time_stamp_for_index.get(time_sensitivity)]
-
-
