@@ -24,7 +24,7 @@ def index_df(required_coins, timeframe):
 
 def process_df_rows(df_row, timeframe):
     es = Elasticsearch([os.environ.get('es_second_host'), ],
-                       http_auth=('elastic', os.environ.get('elastic_second_host_pass')), scheme="http", timeout=30,
+                       http_auth=('elastic', os.environ.get('es_second_host_pass')), scheme="http", timeout=30,
                        max_retries=10, retry_on_timeout=True)
 
     try:
@@ -53,3 +53,5 @@ def relative_time(open_timestamp, timeframe):
     time_stamp_for_index = {'m': 16, 'e': 16,
                             'h': 16, 'd': 10, 'w': 10, 'M': 7}
     return open_timestamp[:time_stamp_for_index.get(time_sensitivity)]
+
+

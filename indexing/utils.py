@@ -94,3 +94,22 @@ def get_ma(candle_data_df, time_period):
     ts = get_candle_timestamp(candle_data_df)
     ma_with_time = pd.concat([pd.Series(ts), ma], axis=1)
     return ma_with_time
+
+
+def update_candle_status(df):
+    a = list(df['open'] - df['close'])
+    b = []
+    for i in range(len(a)):
+        if i == 0:
+            b.append(-1 if a[i] < 0 else 1)
+        else:
+            chn = -1 if a[i] < 0 else 1
+            if b[i - 1] < 0 and chn < 0:
+                b.append(b[i-1] -1)
+            elif b[i - 1] > 0 and chn > 0:
+                b.append(b[i-1] + 1)
+            else:
+                b.append(chn)
+    b_updated = ['Green ' + str(i) if i > 0 else 'Red ' + str(i) for i in b]
+    df['candle_status'] = pd.Series(b_updated)
+    return df

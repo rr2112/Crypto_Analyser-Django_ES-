@@ -4,9 +4,10 @@ import pandas as pd
 from django.core.management.base import BaseCommand
 
 from indexing.decorators import timeit
+from indexing.es_utils import index_df
 from indexing.models import Market_Details
 from indexing.utils import get_all_coin_pairs, get_candle_data_with_timestamp, get_avg_tr, get_basic_indicators, \
-    stochastic_crossover
+    stochastic_crossover, update_candle_status
 
 
 class Command(BaseCommand):
@@ -55,8 +56,9 @@ def scalping_report(coin_pair, time_frame):
     df2['vol_change'] = round(
         df2['volume'] / df2['volume'].shift(periods=1), 2)
     df2['prev_volume_change'] = df2['vol_change'].shift(periods=1)
+    df2 = update_candle_status(df2)
     temp_df = pd.DataFrame()
-    # index_df(temp_df.append(df2[len(df) - 20:]), time_frame)
+    index_df(temp_df.append(df2[len(df) - 20:]), time_frame)
     return df2[len(df) - 1:]
 
 

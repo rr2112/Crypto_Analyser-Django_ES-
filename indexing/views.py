@@ -14,35 +14,15 @@ def home(request):
     return render(request, 'home.html')
 
 
-def Table_1m(request):
+def Table(request):
+    time_frame = request.get_full_path_info().strip('/')
     all_coin_pairs = get_all_coin_pairs()
-    all_time_frames = ('1m',)
+    all_time_frames = (time_frame,)
     df = main(all_coin_pairs, all_time_frames)
     required_coins = df.sort_values('atr_weightage', ascending=False)
     coin_object = required_coins.to_html()
 
     return HttpResponse(coin_object)
-
-
-def Table_5m(request):
-    all_coin_pairs = get_all_coin_pairs()
-    all_time_frames = ('5m',)
-    df = main(all_coin_pairs, all_time_frames)
-    required_coins = df.sort_values('atr_weightage', ascending=False)
-    coin_object = required_coins.to_html()
-
-    return HttpResponse(coin_object)
-
-
-def Table_1h(request):
-    all_coin_pairs = get_all_coin_pairs()
-    all_time_frames = ('1h',)
-    df = main(all_coin_pairs, all_time_frames)
-    required_coins = df.sort_values('atr_weightage', ascending=False)
-    coin_object = required_coins.to_html()
-
-    return HttpResponse(coin_object)
-
 
 def market_details_refresh(request):
     market_details = get_market_details()
