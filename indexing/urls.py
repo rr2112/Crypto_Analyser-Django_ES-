@@ -9,5 +9,6 @@ urlpatterns = [
     path('1h', views.Table, name ="table_1h"),
     path('4h', views.Table, name ="table_4h"),
     path('1d', views.Table, name ="table_1d"),
+    path('all_tf', views.Table, name ="table_all_tf"),
     path('refresh_market_dtls', views.market_details_refresh, name = "refresh_market_dtls")
 ]

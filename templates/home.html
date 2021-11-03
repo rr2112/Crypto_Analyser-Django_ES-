@@ -14,6 +14,7 @@
             <li>{% block nav-1h %}<a href="{% url 'table_1h' %}">1 hour</a>{% endblock %}</li>
             <li>{% block nav-4h %}<a href="{% url 'table_4h' %}">4 hour</a>{% endblock %}</li>
             <li>{% block nav-1d %}<a href="{% url 'table_1d' %}">1 day</a>{% endblock %}</li>
+            <li>{% block nav-all %}<a href="{% url 'table_all_tf' %}">All time frames</a>{% endblock %}</li>
             <li>{% block nav-market_details%}<a href="{% url 'refresh_market_dtls' %}">Refresh Market Cap Details(Coin Gecko)</a>{% endblock %}</li>
         </ul>
         {% endblock %}

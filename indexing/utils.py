@@ -17,10 +17,19 @@ def get_all_coin_pairs():
     all_coin_pairs = list(load_markets.keys())
     return all_coin_pairs
 
+@timeit
+def get_all_non_futures_pairs():
+    exchange = ccxt.binance(
+        {'enableRateLimit': True,})
+    load_markets = exchange.load_markets()
+    all_coin_pairs = list(load_markets.keys())
+    return all_coin_pairs
+
 
 def get_avg_tr(df, time_period):
-    real = talib.ATR(df['high'], df['low'], df['close'],
-                     timeperiod=time_period)
+    real = pd.Series()
+    if not df.empty :
+        real = talib.ATR(df['high'], df['low'], df['close'], timeperiod=time_period)
     return real
 
 
