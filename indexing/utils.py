@@ -10,11 +10,17 @@ from indexing.decorators import timeit
 
 
 @timeit
-def get_all_coin_pairs():
-    exchange = ccxt.binance(
-        {'enableRateLimit': True, 'options': {'defaultType': 'future', }})
+def get_all_coin_pairs(*derivative):
+    base = {'binance': ccxt.binance, 'kucoin': ccxt.kucoin}
+    if derivative[0] == 'future':
+        exchange = base.get(derivative[1])(
+            {'enableRateLimit': True, 'options': {'defaultType': 'future', }})
+    else:
+        exchange = ccxt.binance(
+        {'enableRateLimit': True})
     load_markets = exchange.load_markets()
     all_coin_pairs = list(load_markets.keys())
+    all_coin_pairs = [i for i in all_coin_pairs if len(i.split('/'))>1 and i.split('/')[1] == 'USDT']
     return all_coin_pairs
 
 @timeit
@@ -42,9 +48,10 @@ def get_basic_indicators(ind_type, candle_data_df, time_period):
 
 
 def get_candle_data_with_timestamp(exchange, symbol, interval, limit, derivative):
+    base = {'binance':ccxt.binance,'kucoin':ccxt.kucoin}
     try:
-        if derivative:
-            exchange = ccxt.binance(
+        if derivative =='future':
+            exchange = base.get(exchange)(
                 {'enableRateLimit': True, 'options': {'defaultType': 'future', }})
         else:
             exchange = ccxt.binance({'enableRateLimit': True})
@@ -119,6 +126,18 @@ def update_candle_status(df):
                 b.append(b[i-1] + 1)
             else:
                 b.append(chn)
-    b_updated = ['Green ' + str(i) if i > 0 else 'Red ' + str(i) for i in b]
+    b_updated = ['Red ' + str(i) if i > 0 else 'Green ' + str(i) for i in b]
     df['candle_status'] = pd.Series(b_updated)
+    return df
+
+
+def update_moving_averages(df, time_frame):
+    if time_frame == '1w':
+        df['ma_21'] = get_ma(df, 21)[1]
+        df['diff_from_ma_21'] = (df['close'] - df['ma_21']) * 100 / df['close']
+    else:
+        df['ma_100'] = get_ma(df, 100)[1]
+        df['diff_from_ma_100'] = (df['close'] - df['ma_100']) * 100 / df['close']
+        df['ma_200'] = get_ma(df, 200)[1]
+        df['diff_from_ma_200'] = (df['close'] - df['ma_200']) * 100 / df['close']
     return df

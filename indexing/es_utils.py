@@ -23,8 +23,11 @@ def index_df(required_coins, timeframe):
 
 
 def process_df_rows(df_row, timeframe):
-    es = Elasticsearch([os.environ.get('es_second_host'), ],
-                       http_auth=('elastic', os.environ.get('es_second_host_pass')), scheme="http", timeout=30,
+    # es = Elasticsearch([os.environ.get('es_second_host'), ],
+    #                    http_auth=('elastic', os.environ.get('es_second_host_pass')), scheme="http", timeout=30,
+    #                    max_retries=10, retry_on_timeout=True)
+    es = Elasticsearch([os.environ.get('es_trail_host'), ],
+                       http_auth=('elastic', os.environ.get('es_trail_host_pass')), scheme="http", timeout=30,
                        max_retries=10, retry_on_timeout=True)
 
     try:

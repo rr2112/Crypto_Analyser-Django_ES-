@@ -9,7 +9,7 @@ from indexing.decorators import timeit
 from indexing.es_utils import index_df
 from indexing.models import Market_Details
 from indexing.utils import get_all_coin_pairs, get_candle_data_with_timestamp, get_avg_tr, get_basic_indicators, \
-    stochastic_crossover, update_candle_status, get_ma
+    stochastic_crossover, update_candle_status, update_moving_averages
 
 
 class Command(BaseCommand):
@@ -24,26 +24,27 @@ class Command(BaseCommand):
         print(result)
 
 
-def scalping_report(coin_pair, time_frame):
+def scalping_report(coin_pair, time_frame, derivative,exchange='binance'):
     rsi_period = 5
     market_data = Market_Details.objects.filter(
         symbol=(coin_pair.rstrip('/USDT').rstrip('/BUSD')).lower()).values()
     market_details = dict(market_data[0]) if len(market_data) > 0 else {}
     df = pd.DataFrame()
-    n_candles = {'1m': 30, '5m': 40, '1h': 60, '4h': 250, '1d': 500}
+    n_candles = {'1m': 30, '5m': 40, '1h': 200, '4h': 250, '1d': 250, '1w':250}
     try:
         df = get_candle_data_with_timestamp(
-            'binance', coin_pair, time_frame, n_candles.get(time_frame,50), 'Futures')
+            exchange, coin_pair, time_frame, 300, derivative)
         atr = get_avg_tr(df, 2)
         rsi = get_basic_indicators('RSI', df, rsi_period)
         df2 = pd.concat([df, atr.rename('atr')], axis=1)
         stochastic = stochastic_crossover(df2)
+        df2['derivative'] = derivative
+        df2['exchange'] = exchange
         df2['slowk'] = stochastic['slowk']
         df2['trend'] = stochastic['trend']
         df2['slowd'] = stochastic['slowd']
         df2['momentum'] = stochastic['momentum']
-        df2['ma_100'] = get_ma(df, 100)[1]
-        df2['ma_200'] = get_ma(df, 200)[1]
+        df2 = update_moving_averages(df2,time_frame)
         df2['rsi-' + str(rsi_period)] = rsi[1]
         df2['coin'] = coin_pair
         df2['atr_weightage'] = (df2['atr'] / df2['open']) * 100
@@ -64,8 +65,10 @@ def scalping_report(coin_pair, time_frame):
         df2['prev_volume_change'] = df2['vol_change'].shift(periods=1)
         df2['OBV'] = talib.OBV(df['close'], df['volume'])
         df2['VWAP'] = qt.vwap(df)
-        df2['diff_from_ma_200'] = (df2['close']-df2['ma_200']) * 100 / df['close']
+        df2['diff_to_vwap'] = (df2['close']-df2['VWAP']) * 100 / df['close']
         df2 = update_candle_status(df2)
+        if coin_pair.split('/')[0] in ('BTT','HBAR','ALGO','ONE','OCEAN','RSR','HOT','EGLD','FTT','FIL','TKO','TOMO','XRP','ETH','ATOM','DOGE','THETA','SOL','ADA','BNB','LTC','ENJ','MASK','WAVES','STEP','MITX','UBX','QRDO','POLC','POLX','BAX','WIN','VRA','TEL','HTR','BNB'):
+            df2['to_invest'] = True
         temp_df = pd.DataFrame()
         index_df(temp_df.append(df2[len(df) - 10:]), time_frame)
         return df2[len(df) - 1:]
@@ -74,10 +77,11 @@ def scalping_report(coin_pair, time_frame):
 
 
 @timeit
-def main(all_coin_pairs, all_time_frames):
+def main(all_coin_pairs, all_time_frames,derivative,exchange):
     required_coins = pd.DataFrame()
-    with ThreadPoolExecutor(max_workers=60) as executor:
-        future_to_f_detail = {executor.submit(scalping_report, id, timeframe): (id, timeframe) for timeframe in
+    no_of_workers = 50 if exchange == 'binance' else 5
+    with ThreadPoolExecutor(max_workers=no_of_workers) as executor:
+        future_to_f_detail = {executor.submit(scalping_report, id, timeframe, derivative,exchange): (id, timeframe, derivative, exchange) for timeframe in
                               all_time_frames for id in
                               all_coin_pairs}
         for future in as_completed(future_to_f_detail):
