@@ -1,7 +1,7 @@
 import math
 import os
 from datetime import datetime
-
+from indexing.decorators import timeit
 from elasticsearch import Elasticsearch
 
 
@@ -14,7 +14,7 @@ def update_time_frame(timeframe):
     return timeframe
 
 
-# @timeit
+
 def index_df(required_coins, timeframe):
     timeframe = update_time_frame(timeframe)
     length_of_df = len(required_coins)
@@ -57,4 +57,47 @@ def relative_time(open_timestamp, timeframe):
                             'h': 16, 'd': 10, 'w': 10, 'M': 7}
     return open_timestamp[:time_stamp_for_index.get(time_sensitivity)]
 
+@timeit
+def index_total_df(df_o):
+    index_data = []
+    print("conn start",datetime.now())
+    es = Elasticsearch([os.environ.get('es_trail_host'), ],
+                       http_auth=('elastic', os.environ.get('es_trail_host_pass')), scheme="http", timeout=30,
+                       max_retries=10, retry_on_timeout=True)
+    print("conn end", datetime.now())
+    print("length of dataframe",len(df_o))
+    processed_records = 0
+    temp_processed = 0
+    for i in range(len(df_o)):
+        df = df_o.iloc[i]
+        try:
+            df = df.fillna(0)
+        except Exception as e:
+            print(e)
+        timeframe = df['timeframe']
+        u_id = df['coin']+relative_time(df['open_timestamp'], df['timeframe'])
+        data_body = {i: j for i, j in df.items()}
+        data_body['open_timestamp_str'] = data_body['open_timestamp']
+        data_body['open_timestamp'] = datetime.strptime(data_body['open_timestamp'], '%Y-%m-%d %H:%M:%S')
+        del data_body['open_time']
+        if math.isinf(data_body['vol_change']):
+            del data_body['vol_change']
+        if math.isinf(data_body['prev_volume_change']):
+            del data_body['prev_volume_change']
+        index_data.append(({'index': {'_id': u_id}}))
+        index_data.append(data_body)
+        temp_processed +=1
+        if temp_processed>2000:
+            print("8000 index start", datetime.now())
+            es.bulk(index='atr_weightage_' + update_time_frame(timeframe), body=index_data)
+            print("8000 index end", datetime.now())
+            index_data = []
+            processed_records += 2000
+            pending_records = len(df_o)-processed_records
+            print(f"processed_records:{processed_records}, pending_records:{pending_records}")
+            temp_processed = 0
+    if index_data:
+        print("end index start", datetime.now())
+        es.bulk(index='atr_weightage_' + update_time_frame(timeframe), body=index_data)
+        print("end index end", datetime.now())
 
