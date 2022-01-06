@@ -9,6 +9,7 @@ from indexing.management.commands.coingecko import get_market_details
 from indexing.management.commands.elastic_index import main
 from indexing.utils import get_all_coin_pairs
 from .models import Market_Details
+from indexing.es_utils import index_market_data
 
 
 def home(request):
@@ -42,11 +43,16 @@ def Table(request):
 
 def market_details_refresh(request):
     market_details = get_market_details()
+    old_market_details = {i['symbol']:i['market_cap_rank'] for i in list(Market_Details.objects.all().values('symbol','market_cap_rank'))}
+    index_market_data(market_details,old_market_details)
     for i in market_details.values():
         i['ath_date'] = make_aware(datetime.strptime(i['ath_date'][:19], '%Y-%m-%dT%H:%M:%S'))
         i['atl_date'] = make_aware(datetime.strptime(i['atl_date'][:19], '%Y-%m-%dT%H:%M:%S'))
         i['last_updated'] = make_aware(datetime.strptime(i['last_updated'][:19], '%Y-%m-%dT%H:%M:%S'))
         i['roi'] = 0.0
+        if i.get('old_rank'):
+            del i['old_rank']
+            del i['rank_change']
         m = Market_Details(**i)
         m.save()
     return HttpResponse("Market data Updated")

@@ -1,9 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
-
+from elasticsearch import Elasticsearch
 from pycoingecko import CoinGeckoAPI
-
+import os
 from indexing.decorators import timeit
-
+# from indexing.models import Market_Details
 result = {}
 
 
@@ -36,6 +36,23 @@ def get_market_details():
     # result = {i[0]:i[1] for i in  sorted(result.items(), key=lambda x: x[1].get('market_cap_rank'), reverse=False)}
     return result
 
+def index_market_data(data):
+    index_data = []
+    # market_data = Market_Details.obj
+    es = Elasticsearch([os.environ.get('es_second_host'), ],
+                       http_auth=('elastic', os.environ.get('es_second_host_pass')), scheme="http", timeout=30,
+                       max_retries=10, retry_on_timeout=True)
+    for i in data:
+        index_data.append(({'index': {'_id': data[i]['id']+str(data[i]['market_cap_rank'])}}))
+        index_data.append(data[i])
+    es.bulk(index='market_cap_data', body=index_data)
+    print("market data indexed")
+
+
 
 if __name__ == '__main__':
-    print(get_market_details())
+    d=get_market_details()
+    print(d)
+    index_market_data(d)
+
+

@@ -4,6 +4,12 @@ from datetime import datetime
 from indexing.decorators import timeit
 from elasticsearch import Elasticsearch
 
+def es_connect():
+    es = Elasticsearch([os.environ.get('es_second_host'), ],
+                       http_auth=('elastic', os.environ.get('es_second_host_pass')), scheme="http", timeout=30,
+                       max_retries=10, retry_on_timeout=True)
+    return es
+
 
 def update_time_frame(timeframe):
     """ correction for index id :!caps not allowed"""
@@ -23,12 +29,12 @@ def index_df(required_coins, timeframe):
 
 
 def process_df_rows(df_row, timeframe):
-    # es = Elasticsearch([os.environ.get('es_second_host'), ],
-    #                    http_auth=('elastic', os.environ.get('es_second_host_pass')), scheme="http", timeout=30,
-    #                    max_retries=10, retry_on_timeout=True)
-    es = Elasticsearch([os.environ.get('es_trail_host'), ],
-                       http_auth=('elastic', os.environ.get('es_trail_host_pass')), scheme="http", timeout=30,
+    es = Elasticsearch([os.environ.get('es_second_host'), ],
+                       http_auth=('elastic', os.environ.get('es_second_host_pass')), scheme="http", timeout=30,
                        max_retries=10, retry_on_timeout=True)
+    # es = Elasticsearch([os.environ.get('es_trail_host'), ],
+    #                    http_auth=('elastic', os.environ.get('es_trail_host_pass')), scheme="http", timeout=30,
+    #                    max_retries=10, retry_on_timeout=True)
 
     try:
         df_row = df_row.fillna(0)
@@ -61,9 +67,7 @@ def relative_time(open_timestamp, timeframe):
 def index_total_df(df_o):
     index_data = []
     print("conn start",datetime.now())
-    es = Elasticsearch([os.environ.get('es_trail_host'), ],
-                       http_auth=('elastic', os.environ.get('es_trail_host_pass')), scheme="http", timeout=30,
-                       max_retries=10, retry_on_timeout=True)
+    es = es_connect()
     print("conn end", datetime.now())
     print("length of dataframe",len(df_o))
     processed_records = 0
@@ -87,12 +91,12 @@ def index_total_df(df_o):
         index_data.append(({'index': {'_id': u_id}}))
         index_data.append(data_body)
         temp_processed +=1
-        if temp_processed>2000:
+        if temp_processed>8000:
             print("8000 index start", datetime.now())
             es.bulk(index='atr_weightage_' + update_time_frame(timeframe), body=index_data)
             print("8000 index end", datetime.now())
             index_data = []
-            processed_records += 2000
+            processed_records += 8000
             pending_records = len(df_o)-processed_records
             print(f"processed_records:{processed_records}, pending_records:{pending_records}")
             temp_processed = 0
@@ -101,3 +105,16 @@ def index_total_df(df_o):
         es.bulk(index='atr_weightage_' + update_time_frame(timeframe), body=index_data)
         print("end index end", datetime.now())
 
+
+def index_market_data(data,old_data):
+    index_data = []
+    # market_data = Market_Details.obj
+    es = es_connect()
+    for i in data:
+        data[i]['old_rank'] = old_data.get(data[i]['symbol']) if old_data.get(data[i]['symbol']) else data[i]['market_cap_rank']
+        data[i]['rank_change'] =  data[i]['old_rank'] - data[i]['market_cap_rank']
+        index_data.append(({'index': {'_id': data[i]['symbol']+str(data[i]['market_cap_rank'])}}))
+        index_data.append(data[i])
+    es.bulk(index='market_cap_data', body=index_data)
+    print("market data indexed")
+    return False

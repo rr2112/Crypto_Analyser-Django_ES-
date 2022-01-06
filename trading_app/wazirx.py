@@ -40,25 +40,29 @@ def format_as_df(d1, usdt_price):
         if len(d1[i]) > 2:
             temp = {'coin': i}
             temp.update(d1[i])
+            temp['binance_price_usdt'] = binance_price.get(i)
             coins_list.append(temp)
 
     df = pd.DataFrame(coins_list)
     df['usdt_price'] = usdt_price
-    # df['converted_buy'] =
     df['inr-usdt-buy'] = df['inrbuy'] / usdt_price
     df['inr-usdt-sell'] = df['inrsell'] / usdt_price
     df['usdt-inr-buy'] = df['usdtbuy'] * usdt_price
     df['usdt-inr-sell'] = df['usdtsell'] * usdt_price
-    df['buy-usdt-sell-inr'] = df['inr-usdt-buy'] - df['usdtsell']
+    df['buy-usdt-sell-inr'] = df['inrbuy']- df['usdt-inr-sell']
     df['buy-inr-sell-usdt'] = df['usdt-inr-buy'] - df['inrsell']
     # df['bisu'] = (df['usdt-inr-buy']-df['inrsell'])*100/df['inrsell']
     df['bisu'] = df['buy-inr-sell-usdt'] * 100 / df['inrsell']
-
-    return df
+    df['busi'] = df['buy-usdt-sell-inr'] * 100/ df['usdt-inr-sell']
+    result_df = df[['coin','buy-usdt-sell-inr','buy-inr-sell-usdt','bisu','busi','inrbuy','inrsell','usdtbuy','usdtsell'
+        ,'binance_price_usdt']]
+    return result_df
 
 def get_binance_price(coins):
     exchange = ccxt.binance({'enableRateLimit': True})
     data = exchange.fetchTickers(coins)
+    price_data = {i.strip('/USDT').lower(): data[i]['info']['lastPrice'] for i in data}
+    return price_data
 
 if __name__ == '__main__':
     waz_data, usdt_price = get_waz_data()
