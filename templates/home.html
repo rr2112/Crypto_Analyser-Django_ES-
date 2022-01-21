@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+</head>
+    <body>
+        {% block nav %}
+        <h3>Futures</h3>
+        <ul id="nav">
+            <li>{% block nav-1m%}<a href="{% url 'table_1m-future' %}">1 min</a>{% endblock %}</li>
+            <li>{% block nav-5m%}<a href="{% url 'table_5m-future' %}">5 min</a>{% endblock %}</li>
+            <li>{% block nav-1h %}<a href="{% url 'table_1h-future' %}">1 hour</a>{% endblock %}</li>
+            <li>{% block nav-4h %}<a href="{% url 'table_4h-future' %}">4 hour</a>{% endblock %}</li>
+            <li>{% block nav-1d %}<a href="{% url 'table_1d-future' %}">1 day</a>{% endblock %}</li>
+            <li>{% block nav-1w %}<a href="{% url 'table_1w-future' %}">1 week</a>{% endblock %}</li>
+            <li>{% block nav-all %}<a href="{% url 'table_all_tf-future' %}">All time frames</a>{% endblock %}</li>
+        <h3>Spot</h3>
+            <li>{% block nav-1m-spot %}<a href="{% url 'table_1m-spot' %}">1 min</a>{% endblock %}</li>
+            <li>{% block nav-5m-spot %}<a href="{% url 'table_5m-spot' %}">5 min</a>{% endblock %}</li>
+            <li>{% block nav-1h-spot %}<a href="{% url 'table_1h-spot' %}">1 hour</a>{% endblock %}</li>
+            <li>{% block nav-4h-spot %}<a href="{% url 'table_4h-spot' %}">4 hour</a>{% endblock %}</li>
+            <li>{% block nav-1d-spot %}<a href="{% url 'table_1d-spot' %}">1 day</a>{% endblock %}</li>
+            <li>{% block nav-1w-spot %}<a href="{% url 'table_1w-spot' %}">1 week</a>{% endblock %}</li>
+            <li>{% block nav-all-spot %}<a href="{% url 'table_all_tf-spot' %}">All time frames</a>{% endblock %}</li>'
+        <h3>Kucoin Futures</h3>
+            <li>{% block nav-1w-kucoin%}<a href="{% url 'table_1w-future-kucoin' %}">1 week</a>{% endblock %}</li>
+        <h3>Refresh Market Cap</h3>
+            <li>{% block nav-market_details%}<a href="{% url 'refresh_market_dtls' %}">Refresh Market Cap Details(Coin Gecko)</a>{% endblock %}</li>
+        </ul>
+        {% endblock %}
+    </body>
+</html>
