@@ -111,7 +111,7 @@ def main(all_coin_pairs, all_time_frames, derivative, exchange):
             _df = future.result()
             df_for_indexing = df_for_indexing.append(_df)
             required_coins = required_coins.append(_df[len(_df) - 1 :])
-        index_total_df(df_for_indexing)
+        # index_total_df(df_for_indexing)
         return required_coins
 
 

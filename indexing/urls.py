@@ -4,7 +4,7 @@ from indexing import views
 
 urlpatterns = [
     path("", views.home, name="home"),
-    path("1m-future", views.Table, name="table_1m-future"),
+    path("1M-future", views.Table, name="table_1m-future"),
     path("5m-future", views.Table, name="table_5m-future"),
     path("1h-future", views.Table, name="table_1h-future"),
     path("4h-future", views.Table, name="table_4h-future"),
