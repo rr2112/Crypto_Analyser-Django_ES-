@@ -6,16 +6,7 @@ from elasticsearch import Elasticsearch
 
 
 def es_connect():
-    es = Elasticsearch(
-        [
-            os.environ.get("es_second_host"),
-        ],
-        http_auth=("elastic", os.environ.get("es_second_host_pass")),
-        scheme="http",
-        timeout=30,
-        max_retries=10,
-        retry_on_timeout=True,
-    )
+    es = Elasticsearch([os.environ.get("es_second_host"),],http_auth=("elastic", os.environ.get("es_second_host_pass")), scheme="http",timeout=30,max_retries=10,retry_on_timeout=True,)
     return es
 
 
